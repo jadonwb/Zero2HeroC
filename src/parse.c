@@ -10,7 +10,17 @@
 #include "common.h"
 #include "parse.h"
 
-void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
+int list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
+  if (dbhdr == NULL) {
+    printf("Invalid header pointer\n");
+    return STATUS_ERROR;
+  }
+
+  if (employees == NULL) {
+    printf("Invalid employees pointer\n");
+    return STATUS_ERROR;
+  }
+
   int i = 0;
   for (; i < dbhdr->count; i++) {
     printf("Employee %d:\n", i);
@@ -18,6 +28,8 @@ void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
     printf("\tAddress: %s\n", employees[i].address);
     printf("\tHours: %u\n", employees[i].hours);
   }
+
+  return STATUS_SUCCESS;
 }
 
 int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees,

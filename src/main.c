@@ -80,21 +80,30 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	if (read_employees(dbfd, header, &employees) != STATUS_SUCCESS) {
+	if (read_employees(dbfd, header, &employees) == STATUS_ERROR) {
 		printf("Failed to read employees from database\n");
 		return -1;
 	}
 
 	if (addstring) {
-		add_employee(header, &employees, addstring);
+		if (add_employee(header, &employees, addstring) == STATUS_ERROR) {
+			printf("Failed to add employee\n");
+			return -1;
+		}
 	}
 
 	if (removename) {
-		remove_employee(header, &employees, removename);
+		if (remove_employee(header, &employees, removename) == STATUS_ERROR) {
+			printf("Failed to remove employee\n");
+			return -1;
+		}
 	}
 
 	if (list) {
-		list_employees(header, employees);
+		if (list_employees(header, employees) == STATUS_ERROR) {
+			printf("Failed to list employees\n");
+			return -1;
+		}
 	}
 
 	output_file(dbfd, header, employees);
