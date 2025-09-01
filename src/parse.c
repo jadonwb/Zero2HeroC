@@ -13,6 +13,12 @@ void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {}
 
 int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees,
                  char *addstring) {
+
+  if (dbhdr == NULL) {
+    printf("Invalid header pointer\n");
+    return STATUS_ERROR;
+  }
+
   if (employees == NULL) {
     printf("Invalid employees pointer\n");
     return STATUS_ERROR;
