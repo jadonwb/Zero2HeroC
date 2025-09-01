@@ -27,6 +27,10 @@ int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees,
   char *name = strtok(addstring, ",");
   char *addr = strtok(NULL, ",");
   char *hours = strtok(NULL, ",");
+  if (name == NULL || addr == NULL || hours == NULL) {
+    printf("Invalid add string format\n");
+    return STATUS_ERROR;
+  }
 
   dbhdr->count++;
 
@@ -40,7 +44,12 @@ int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees,
           sizeof((*employees)[dbhdr->count - 1].name));
   strncpy((*employees)[dbhdr->count - 1].address, addr,
           sizeof((*employees)[dbhdr->count - 1].address));
-  (*employees)[dbhdr->count - 1].hours = atoi(hours);
+  int hours_int = atoi(hours);
+  if (hours_int < 0) {
+    printf("Invalid hours value\n");
+    return STATUS_ERROR;
+  }
+  (*employees)[dbhdr->count - 1].hours = hours_int;
 
   return STATUS_SUCCESS;
 }
