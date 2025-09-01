@@ -32,6 +32,48 @@ int list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
   return STATUS_SUCCESS;
 }
 
+int update_employee(struct dbheader_t *dbhdr, struct employee_t **employees,
+                    char *updatestring) {
+  if (dbhdr == NULL) {
+    printf("Invalid header pointer\n");
+    return STATUS_ERROR;
+  }
+
+  if (employees == NULL) {
+    printf("Invalid employees pointer\n");
+    return STATUS_ERROR;
+  }
+
+  char *name = strtok(updatestring, ",");
+  char *hours = strtok(NULL, ",");
+  if (name == NULL || hours == NULL) {
+    printf("Invalid update string format\n");
+    return STATUS_ERROR;
+  }
+
+  int i = 0;
+  for (; i < dbhdr->count; i++) {
+    if (strncmp((*employees)[i].name, name, sizeof((*employees)[i].name)) ==
+        0) {
+      break;
+    }
+  }
+
+  if (i == dbhdr->count) {
+    printf("Employee not found\n");
+    return STATUS_ERROR;
+  }
+
+  int hours_int = atoi(hours);
+  if (hours_int < 0) {
+    printf("Invalid hours value\n");
+    return STATUS_ERROR;
+  }
+  (*employees)[i].hours = hours_int;
+
+  return STATUS_SUCCESS;
+}
+
 int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees,
                     char *name) {
   if (dbhdr == NULL) {
