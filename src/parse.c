@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +10,56 @@
 #include "common.h"
 #include "parse.h"
 
-void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {}
+void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
+  int i = 0;
+  for (; i < dbhdr->count; i++) {
+    printf("Employee %d:\n", i);
+    printf("\tName: %s\n", employees[i].name);
+    printf("\tAddress: %s\n", employees[i].address);
+    printf("\tHours: %u\n", employees[i].hours);
+  }
+}
+
+int remove_employee(struct dbheader_t *dbhdr, struct employee_t **employees,
+                    char *name) {
+  if (dbhdr == NULL) {
+    printf("Invalid header pointer\n");
+    return STATUS_ERROR;
+  }
+
+  if (employees == NULL) {
+    printf("Invalid employees pointer\n");
+    return STATUS_ERROR;
+  }
+
+  int i = 0;
+  for (; i < dbhdr->count; i++) {
+    if (strncmp((*employees)[i].name, name, sizeof((*employees)[i].name)) ==
+        0) {
+      break;
+    }
+  }
+
+  if (i == dbhdr->count) {
+    printf("Employee not found\n");
+    return STATUS_ERROR;
+  }
+
+  int j = i;
+  for (; j < dbhdr->count - 1; j++) {
+    (*employees)[j] = (*employees)[j + 1];
+  }
+
+  dbhdr->count--;
+
+  *employees = realloc(*employees, dbhdr->count * sizeof(struct employee_t));
+  if (*employees == NULL && dbhdr->count > 0) {
+    printf("Realloc failed to shrink employee array\n");
+    return STATUS_ERROR;
+  }
+
+  return STATUS_SUCCESS;
+}
 
 int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees,
                  char *addstring) {
@@ -88,10 +138,11 @@ int output_file(int fd, struct dbheader_t *dbhdr,
   }
 
   int realcount = dbhdr->count;
+  size_t new_filesize =
+      sizeof(struct dbheader_t) + (realcount * sizeof(struct employee_t));
 
   dbhdr->magic = htonl(dbhdr->magic);
-  dbhdr->filesize = htonl(sizeof(struct dbheader_t) +
-                          (realcount * sizeof(struct employee_t)));
+  dbhdr->filesize = htonl(new_filesize);
   dbhdr->count = htons(dbhdr->count);
   dbhdr->version = htons(dbhdr->version);
 
@@ -102,6 +153,11 @@ int output_file(int fd, struct dbheader_t *dbhdr,
   for (int i = 0; i < realcount; i++) {
     employees[i].hours = htonl(employees[i].hours);
     write(fd, &employees[i], sizeof(struct employee_t));
+  }
+
+  if (ftruncate(fd, new_filesize) == -1) {
+    perror("Failed to truncate file");
+    return STATUS_ERROR;
   }
 
   return STATUS_SUCCESS;
